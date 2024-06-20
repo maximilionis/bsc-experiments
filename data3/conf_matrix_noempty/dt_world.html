@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_965eb9ac65883e40e531b4420a7d722f {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_965eb9ac65883e40e531b4420a7d722f" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_965eb9ac65883e40e531b4420a7d722f = L.map(
+                "map_965eb9ac65883e40e531b4420a7d722f",
+                {
+                    center: [20.0, 0.0],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 2,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_065438630025124b25407bef19215d1f = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {"attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "detectRetina": false, "maxNativeZoom": 19, "maxZoom": 19, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            );
+        
+    
+            tile_layer_065438630025124b25407bef19215d1f.addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+            var circle_marker_9588978e990b38a1d8defcd147b7be50 = L.circleMarker(
+                [-19.89, 120.36],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_91192c55cacca81d68f87a62770c92a7 = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_afa0c08e5ff1e18715ad106733b96820 = $(`<div id="html_afa0c08e5ff1e18715ad106733b96820" style="width: 100.0%; height: 100.0%;">                         Location ID: a0<br>                         Accuracy: 1.00<br>                         Train Count: 8<br>                         Test Count: 1<br>                         Total Count: 9<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_91192c55cacca81d68f87a62770c92a7.setContent(html_afa0c08e5ff1e18715ad106733b96820);
+            
+        
+
+        circle_marker_9588978e990b38a1d8defcd147b7be50.bindPopup(popup_91192c55cacca81d68f87a62770c92a7)
+        ;
+
+        
+    
+    
+            var circle_marker_2b05784237c2d69884c1515ce4974bd4 = L.circleMarker(
+                [-20.07, 119.63],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_5ade9c1bdfb315eab1584683759af101 = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_91192d606bc7d3744590c926797f8a50 = $(`<div id="html_91192d606bc7d3744590c926797f8a50" style="width: 100.0%; height: 100.0%;">                         Location ID: a1<br>                         Accuracy: 1.00<br>                         Train Count: 12<br>                         Test Count: 3<br>                         Total Count: 15<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_5ade9c1bdfb315eab1584683759af101.setContent(html_91192d606bc7d3744590c926797f8a50);
+            
+        
+
+        circle_marker_2b05784237c2d69884c1515ce4974bd4.bindPopup(popup_5ade9c1bdfb315eab1584683759af101)
+        ;
+
+        
+    
+    
+            var circle_marker_89f0b1b943a352e025d223ab2c8d6e51 = L.circleMarker(
+                [-19.9, 120.32],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_8969e1ad27ac2795229b0a22bb3f07af = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_e1efc4de681b0ce7a867e0daf4b4eec1 = $(`<div id="html_e1efc4de681b0ce7a867e0daf4b4eec1" style="width: 100.0%; height: 100.0%;">                         Location ID: a2<br>                         Accuracy: 1.00<br>                         Train Count: 4<br>                         Test Count: 4<br>                         Total Count: 8<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_8969e1ad27ac2795229b0a22bb3f07af.setContent(html_e1efc4de681b0ce7a867e0daf4b4eec1);
+            
+        
+
+        circle_marker_89f0b1b943a352e025d223ab2c8d6e51.bindPopup(popup_8969e1ad27ac2795229b0a22bb3f07af)
+        ;
+
+        
+    
+    
+            var circle_marker_ef9cba091002f26375cf899adee74c8b = L.circleMarker(
+                [-19.91, 120.29],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_c65a8cdfe7962deb29224fb3006c3250 = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_103a7fb2b1d0b604f5a93db04e70e857 = $(`<div id="html_103a7fb2b1d0b604f5a93db04e70e857" style="width: 100.0%; height: 100.0%;">                         Location ID: a3<br>                         Accuracy: 1.00<br>                         Train Count: 5<br>                         Test Count: 1<br>                         Total Count: 6<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_c65a8cdfe7962deb29224fb3006c3250.setContent(html_103a7fb2b1d0b604f5a93db04e70e857);
+            
+        
+
+        circle_marker_ef9cba091002f26375cf899adee74c8b.bindPopup(popup_c65a8cdfe7962deb29224fb3006c3250)
+        ;
+
+        
+    
+    
+            var circle_marker_ca62ece911aff8c3521f606a15b9bfc1 = L.circleMarker(
+                [-37.35, -58.09],
+                {"bubblingMouseEvents": true, "color": "#a50026", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#a50026", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_7c74de191f075be99812c70b30983545 = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_de17c911a4259450a58107c3791debf1 = $(`<div id="html_de17c911a4259450a58107c3791debf1" style="width: 100.0%; height: 100.0%;">                         Location ID: a7<br>                         Accuracy: 0.00<br>                         Train Count: 1<br>                         Test Count: 1<br>                         Total Count: 2<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_7c74de191f075be99812c70b30983545.setContent(html_de17c911a4259450a58107c3791debf1);
+            
+        
+
+        circle_marker_ca62ece911aff8c3521f606a15b9bfc1.bindPopup(popup_7c74de191f075be99812c70b30983545)
+        ;
+
+        
+    
+    
+            var circle_marker_8dc5f7ed4ac5a22a176140cea5747f4e = L.circleMarker(
+                [18.43, 56.66],
+                {"bubblingMouseEvents": true, "color": "#fdbe6e", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#fdbe6e", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_1c94d3361cf3937f9d8fcbc483a4a9c3 = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_8d6d0b611d3bfced8b374d2be0003595 = $(`<div id="html_8d6d0b611d3bfced8b374d2be0003595" style="width: 100.0%; height: 100.0%;">                         Location ID: a9<br>                         Accuracy: 0.33<br>                         Train Count: 8<br>                         Test Count: 3<br>                         Total Count: 11<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_1c94d3361cf3937f9d8fcbc483a4a9c3.setContent(html_8d6d0b611d3bfced8b374d2be0003595);
+            
+        
+
+        circle_marker_8dc5f7ed4ac5a22a176140cea5747f4e.bindPopup(popup_1c94d3361cf3937f9d8fcbc483a4a9c3)
+        ;
+
+        
+    
+    
+            var circle_marker_d5089b90394cec76f81e37aabd26385f = L.circleMarker(
+                [28.88, 20.93],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_61c616692388973975ef6cd9e5b5e990 = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_b86a2d51159828dd79e5ce17b100666a = $(`<div id="html_b86a2d51159828dd79e5ce17b100666a" style="width: 100.0%; height: 100.0%;">                         Location ID: p3<br>                         Accuracy: 1.00<br>                         Train Count: 1<br>                         Test Count: 1<br>                         Total Count: 2<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_61c616692388973975ef6cd9e5b5e990.setContent(html_b86a2d51159828dd79e5ce17b100666a);
+            
+        
+
+        circle_marker_d5089b90394cec76f81e37aabd26385f.bindPopup(popup_61c616692388973975ef6cd9e5b5e990)
+        ;
+
+        
+    
+    
+            var circle_marker_7efab01a0a000482e7aaabefbb308c9f = L.circleMarker(
+                [-26.2, 29.2],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_f13c8ab67ac772afcbc5a2503cc10fbe = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_517934128952fcf8e190b8555fc2ed3d = $(`<div id="html_517934128952fcf8e190b8555fc2ed3d" style="width: 100.0%; height: 100.0%;">                         Location ID: p5<br>                         Accuracy: 1.00<br>                         Train Count: 9<br>                         Test Count: 3<br>                         Total Count: 12<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_f13c8ab67ac772afcbc5a2503cc10fbe.setContent(html_517934128952fcf8e190b8555fc2ed3d);
+            
+        
+
+        circle_marker_7efab01a0a000482e7aaabefbb308c9f.bindPopup(popup_f13c8ab67ac772afcbc5a2503cc10fbe)
+        ;
+
+        
+    
+    
+            var circle_marker_dfd43b50e258fbd08a954b237d4b7135 = L.circleMarker(
+                [31.66, 6.06],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_59cb3608757f085993f6a01810c6533a = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_9194d132fb572eaacba6e70f87ab411b = $(`<div id="html_9194d132fb572eaacba6e70f87ab411b" style="width: 100.0%; height: 100.0%;">                         Location ID: p6<br>                         Accuracy: 1.00<br>                         Train Count: 7<br>                         Test Count: 2<br>                         Total Count: 9<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_59cb3608757f085993f6a01810c6533a.setContent(html_9194d132fb572eaacba6e70f87ab411b);
+            
+        
+
+        circle_marker_dfd43b50e258fbd08a954b237d4b7135.bindPopup(popup_59cb3608757f085993f6a01810c6533a)
+        ;
+
+        
+    
+    
+            var circle_marker_bc80411c40f7221806dc0168e35710a3 = L.circleMarker(
+                [15.56, 45.8],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_0b0c3bfcef4839fd19af47d394171c7e = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_b106566f368e5debd37e633b555a216e = $(`<div id="html_b106566f368e5debd37e633b555a216e" style="width: 100.0%; height: 100.0%;">                         Location ID: p7<br>                         Accuracy: 1.00<br>                         Train Count: 1<br>                         Test Count: 2<br>                         Total Count: 3<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_0b0c3bfcef4839fd19af47d394171c7e.setContent(html_b106566f368e5debd37e633b555a216e);
+            
+        
+
+        circle_marker_bc80411c40f7221806dc0168e35710a3.bindPopup(popup_0b0c3bfcef4839fd19af47d394171c7e)
+        ;
+
+        
+    
+    
+            var circle_marker_407c97beb848cbe5fda5294f8d53448a = L.circleMarker(
+                [28.6139, 77.209],
+                {"bubblingMouseEvents": true, "color": "#006837", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#006837", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_965eb9ac65883e40e531b4420a7d722f);
+        
+    
+        var popup_87b833de335dab36be6dc01bc7ecc4fb = L.popup({"maxWidth": 300});
+
+        
+            
+                var html_abc06c386cd1d884d12082b6ef2462fc = $(`<div id="html_abc06c386cd1d884d12082b6ef2462fc" style="width: 100.0%; height: 100.0%;">                         Location ID: p8<br>                         Accuracy: 1.00<br>                         Train Count: 20<br>                         Test Count: 2<br>                         Total Count: 22<br>                         Model mean CV Score: 0.7929411764705881<br>                         Model std CV score: 0.08664448300951513<br>                         </div>`)[0];
+                popup_87b833de335dab36be6dc01bc7ecc4fb.setContent(html_abc06c386cd1d884d12082b6ef2462fc);
+            
+        
+
+        circle_marker_407c97beb848cbe5fda5294f8d53448a.bindPopup(popup_87b833de335dab36be6dc01bc7ecc4fb)
+        ;
+
+        
+    
+</script>
+</html>
