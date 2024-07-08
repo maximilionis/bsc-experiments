@@ -1,14 +1,17 @@
 """Marnix Romeijn
-[!!!INSERT DATE WHEN FINISHED!!!]
-[!!!INSERT DESCRIPTION OF FUNCTION!!!]
+08-07-2024
+This code processes Sentinel 2 TROPOMI data. It allows for filtering out valid scenes, regridding the scenes and
+constructing of sets of consecutive scenes. It also features a dashboard which can be run to manually label an datapoint
+as 'empty', 'plume' or 'artefact'. Also the experiments, like constructing a decision tree and plotting matrices is
+done running the code. This file is used to work with sets of 3 scenes per datapoint.
 """
 
 """
 When processing files, make sure they comply with the following rules:"
-1. the files are in locationid_datestring_orbitnumber.nc format
-2. the locationid can be a number or name for the location
-3. the datestring has to be in the same format for all files
-!!! add more rules if you come across anything!!!
+1. the files are in [locationid]_[datestring]_[orbitnumber].nc format.
+2. the locationid can be a number or name for the location. Has to be [type]+1 digit (so e1 instead of empty1)
+3. the datestring has to be in the same format for all files.
+4. It might be necessary to import the EMSFMKFILE by pointing it to a directory for xesmf to work.
 """
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -20,34 +23,21 @@ import seaborn as sns
 from sklearn import tree
 import geopandas as gpd
 import folium
-import shap
 from shapely.geometry import Point
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import KFold, cross_val_score
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-from sklearn.cluster import KMeans
 from sklearn.model_selection import cross_val_predict
-import umap
 from Dashboard import SatelliteDashboard
 from datetime import datetime
 from collections import defaultdict
 import json
 import pandas as pd
-import plotly.graph_objs as go
-import plotly.io as pio
-
-#for laptop
-# os.environ["ESMFMKFILE"] = "C:/Users/mqrom/anaconda3/envs/bsc-marnix-util-2024/Library/lib/esmf.mk"
-#for pc
+# Define ESMFMKFILE if it doesnt work
 os.environ["ESMFMKFILE"] = "C:/Users/mqrom/miniconda3/envs/bsc-marnix-util-2024-mini/Library/lib/esmf.mk"
 import xesmf as xe
 
@@ -360,7 +350,7 @@ def add_classification_variable(regriddedimagesdirectory, csvpath, savefile = Fa
 def print_calender(pre_classed_dict):
     """
     insert dict with locationid as key and dataset as value:
-    - longest period per month since no scene
+    - shows longest period per month since no scene was available
     - shows scenes over the year on a simple calendar
     """
 
@@ -443,73 +433,6 @@ def correlation_prepare_two_images(image_dataarray1, image_dataarray2):
     return corrected_image1, corrected_image2
 
 
-def correlation_calculate_abs_corr_per_duo(classed_data, keys_of_locs, useless_correlations, remove_vars):
-    dict_of_correlations = dict()
-    for key in keys_of_locs:
-        dict_of_correlations[key] = dict()
-
-    for key in keys_of_locs:
-        location_ds = classed_data[key]
-        varlist_to_pop = list(classed_data[key].data_vars)
-        varlist_to_pop.pop() # pops classification label
-        if len(remove_vars) > 0:
-            for i in remove_vars:
-                varlist_to_pop.remove(i)
-        corr_sets_checked = []
-        useless_checks = useless_correlations
-        for variable in varlist_to_pop:
-            dict_of_correlations[key][variable] = []
-            for variable2 in varlist_to_pop:
-                if {variable, variable2} in useless_checks:
-                    continue
-                first_var_ds = classed_data[key][variable]
-                second_var_ds = classed_data[key][variable2]
-                if variable == variable2:
-                    if {variable} in useless_checks:
-                        continue
-                    "when var=var the correlation will be calculated var(t=1) -> var(t=2)"
-                    max_time = len(first_var_ds['time'])-1
-                    timer = 0
-                    while timer < max_time:
-                        first_var_ds_corrected, second_var_ds_corrected = correlation_prepare_two_images(
-                            first_var_ds.isel(time=timer), second_var_ds.isel(time=timer+1))
-                        correlation = xr.corr(first_var_ds_corrected, second_var_ds_corrected).values
-                        dict_of_correlations[key][variable].append(correlation)
-                        timer += 1
-                else:
-                    if {variable, variable2} in corr_sets_checked:
-                        continue
-                    corr_sets_checked.append({variable, variable2})
-                    "when different vars, calculate corr var1(t=1) -> var2(t=1)"
-                    max_time = len(first_var_ds['time'])
-                    timer = 0
-                    while timer < max_time:
-                        first_var_ds_corrected, second_var_ds_corrected = correlation_prepare_two_images(
-                            first_var_ds.isel(time=timer), second_var_ds.isel(time=timer))
-                        correlation = xr.corr(first_var_ds_corrected, second_var_ds_corrected).values
-                        try:
-                            dict_of_correlations[key][f'{variable} X {variable2}'].append(correlation)
-                        except KeyError:
-                            dict_of_correlations[key][f'{variable} X {variable2}'] = []
-                            dict_of_correlations[key][f'{variable} X {variable2}'].append(correlation)
-
-                        timer += 1
-
-
-        print(f'{key} correlations are done')
-    print("--------------------------------------------------------------------------\n")
-    return dict_of_correlations
-
-
-
-
-    # for location in key
-        # for variable in variables
-            # for variable in variables
-                # if var1 and var2 in listofcorrcalcs
-    pass
-
-
 def date_difference(date1, date2):
     format_str = "%Y-%m-%d"
     date1_obj = datetime.strptime(date1, format_str)
@@ -519,6 +442,9 @@ def date_difference(date1, date2):
 
 
 def find_consecutive_scenes(labelled_data, ids_to_check, missingdata_days_threshold, max_set_length):
+    """
+    Finds the first batch of consecutive scenes, before manually labelling them.
+    """
     min_set_size = max_set_length
     valid_scenes_set = dict()
     for loc in ids_to_check:
@@ -537,20 +463,49 @@ def find_consecutive_scenes(labelled_data, ids_to_check, missingdata_days_thresh
             else:
                 difference = date_difference(previousdate, date)
                 if count == 1:
+                    previousdate = date
                     if difference > missingdata_days_threshold:
+                        for item in list_of_dates:
+                            valid_scenes_set[loc][1].append(item)
+                        count = 1
+                        list_of_dates = [actualtime]
+                    else:
+                        list_of_dates.append(actualtime)
+                        count += 1
+                elif count > 1 and count < max_set_length-1:
+                    previousdate = date
+                    if difference > missingdata_days_threshold:
+                        count = 1
+                        if len(list_of_dates) < min_set_size:
                             for item in list_of_dates:
                                 valid_scenes_set[loc][1].append(item)
-                            previousdate = date
-                            count = 1
                             list_of_dates = [actualtime]
                             continue
+                        valid_scenes_set[loc][0].append(set(list_of_dates))
+                        list_of_dates = [actualtime]
+                    else:
+                        count += 1
+                        list_of_dates.append(actualtime)
+                else:
+                    if difference > missingdata_days_threshold:
+                        if len(list_of_dates) >= min_set_size:
+                            valid_scenes_set[loc][0].append(set(list_of_dates))
+                        else:
+                            for item in list_of_dates:
+                                valid_scenes_set[loc][1].append(item)
+                        previousdate = date
+                        count = 1
+                        list_of_dates = [actualtime]
                     else:
                         list_of_dates.append(actualtime)
                         valid_scenes_set[loc][0].append(set(list_of_dates))
                         previousdate = None
                         count = 0
                         list_of_dates = []
-
+        if len(list_of_dates) >= min_set_size:
+            valid_scenes_set[loc][0].append(set(list_of_dates))
+        for item in list_of_dates:
+            valid_scenes_set[loc][1].append(item)
 
 
     print("Valid sets found for:")
@@ -563,11 +518,14 @@ def find_consecutive_scenes(labelled_data, ids_to_check, missingdata_days_thresh
     print("Total sets found:", totalset)
     print("Total scenes dropped:", totaldropped)
 
-
     return valid_scenes_set
 
 
 def drop_scenes_after_set_making(pre_labelled_datas, drop_dict, saveloc, savefile=True):
+    """
+    Gets rid of the scenes which are not part of a consecutive set. This makes it easier to label all the data manually,
+    because unused data is discarded and not shown in the Dashboard.
+    """
     filtered_data = {}
     for loc in drop_dict.keys():
         for timevalue in drop_dict[loc][1]:
@@ -581,7 +539,6 @@ def drop_scenes_after_set_making(pre_labelled_datas, drop_dict, saveloc, savefil
 
 
 def load_dashboard_classed_data(pre_labelled_imagesdirectory, csvpath, ignore_id_list):
-    # load in data
     loaded_data = dict({})
     counter = 0
     with open(csvpath, 'r') as file:
@@ -610,6 +567,10 @@ def load_dashboard_classed_data(pre_labelled_imagesdirectory, csvpath, ignore_id
 
 
 def find_labelled_sets(correct_labelled_data, setsdict):
+    """
+    Filters out the scenes into usable sets of scenes after manual labelling.
+    Sets returned are used in the experiment
+    """
     discardcount = 0
     usecount = 0
     valid_sets = dict()
@@ -635,16 +596,8 @@ def find_labelled_sets(correct_labelled_data, setsdict):
 
 def create_sets_with_data_dict(correctly_classed_data, validsets):
     """
-
-    Parameters
-    ----------
-    correctly_classed_data
-    validsets
-
     Returns a dictionary with 0 till len(validsets) as keys, and a list of xarray datasets of one timestamp. Together
     the items in one list are all consecutive scenes. Contains all variables still.
-    -------
-
     """
     sets_with_datadict = dict()
     datapoint = 0
@@ -658,6 +611,10 @@ def create_sets_with_data_dict(correctly_classed_data, validsets):
 
 
 def convert_to_correlation_dict(setswithdata, onlyabsolutes=False):
+    """
+    Calculates the correlations between the methane variable and the supporting variables. Returns a dictionary with the
+    correlations for every set.
+    """
     correlations = dict()
     for datapoint in setswithdata.keys():
         datapoint_correlations = dict()
@@ -998,6 +955,10 @@ def make_models(datalist, testsize, csv_file, randomstate=101, drop_vars=[], tra
 
 
 def test_make_models1(datalist, drop_var, train_test_state, csv_file):
+    """
+    This keeps trach of the experiments results and prints it out. It calls the previous function to make the models and
+    calls the plot functions.
+    """
     calculationcounter = 0
 
     dt = 0
@@ -1069,7 +1030,7 @@ def test_make_models1(datalist, drop_var, train_test_state, csv_file):
     num_items = len(dt_matrices)
     num_cols = 4
     num_rows = 5
-    fig, axs = plt.subplots(num_rows, num_cols, figsize=(22, 18*1.2))
+    fig, axs = plt.subplots(num_rows, num_cols, figsize=(22, 18))
     axs = axs.flatten()
 
     for idx, (loc, matrices) in enumerate(dt_matrices.items()):
@@ -1088,94 +1049,6 @@ def test_make_models1(datalist, drop_var, train_test_state, csv_file):
     plt.close()
 
 
-def test_clusterings(datalist, drop_vars):
-    dataframe = pd.DataFrame(datalist)
-    columns_to_drop = [col for col in dataframe.columns if any(var in col for var in ['geolocation_flags'])]
-    dataframe_filtered = dataframe.drop(columns=columns_to_drop)
-    dataframe_filtered = dataframe_filtered.dropna()
-    dataframe_filtered = dataframe_filtered.drop(columns=['metadata'])
-
-    if len(drop_vars) > 0:
-        columns_to_drop = [col for col in dataframe_filtered.columns if any(var in col for var in drop_vars)]
-        dataframe_filtered = dataframe_filtered.drop(columns=columns_to_drop)
-
-    X = dataframe_filtered.drop(columns=['classification_label'])
-    y = dataframe_filtered['classification_label']
-
-    # Encode labels
-    le = LabelEncoder()
-    y = le.fit_transform(y)
-
-    # Standardize the data
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    # Dimensionality Reduction
-    # Using UMAP
-    reducer = umap.UMAP(n_components=18)
-    X_umap = reducer.fit_transform(X_scaled)
-
-
-    # Print the shape of the components array
-    print("Shape of components array:", X_umap.shape)
-
-    # Clustering
-    kmeans = KMeans(n_clusters=12, random_state=101)  # Adjust n_clusters as needed
-    clusters = kmeans.fit_predict(X_scaled)
-
-    symbol_mapping = {
-        0: 'circle',
-        1: 'square',
-        2: 'diamond',
-    }
-
-    # Add more mappings as needed based on the number of unique label encodings
-    # Create trace for each cluster
-
-    def create_trace(X_reduced, clusters, labels, title):
-        traces = []
-        for cluster in np.unique(clusters):
-            cluster_mask = clusters == cluster
-            trace = go.Scatter3d(
-                x=X_reduced[cluster_mask, 0],
-                y=X_reduced[cluster_mask, 1],
-                z=X_reduced[cluster_mask, 2],
-                mode='markers',
-                marker=dict(
-                    size=4,
-                    color=cluster,  # Color based on cluster
-                    symbol=[symbol_mapping[label] for label in labels[cluster_mask]],  # Symbol based on label
-                    colorscale='Viridis',
-                    opacity=0.8
-                ),
-                name=f'Cluster {cluster}'
-            )
-            traces.append(trace)
-
-            # Count items of each label in the cluster
-            label_counts = {}
-            for label in set(labels[cluster_mask]):
-                label_counts[label] = sum(labels[cluster_mask] == label)
-            print(f"Cluster {cluster}: {label_counts}")
-
-        layout = go.Layout(
-            title=title,
-            scene=dict(
-                xaxis=dict(title='Component 1'),
-                yaxis=dict(title='Component 2'),
-                zaxis=dict(title='Component 3')
-            ),
-            margin=dict(l=0, r=0, b=0, t=40)
-        )
-        return traces, layout
-
-    # Create plots for each dimensionality reduction technique
-
-    traces_umap, layout_umap = create_trace(X_umap, clusters, y, "UMAP Clustering (3D)")
-    fig_umap = go.Figure(data=traces_umap, layout=layout_umap)
-
-    # Save plots as HTML files
-    pio.write_html(fig_umap, file=f'{data_directory}\\UMAP_Clustering_3D.html', auto_open=True)
 
 
 if __name__ == "__main__":
@@ -1191,17 +1064,17 @@ if __name__ == "__main__":
     csv_path = os.path.join(__location__, 'data\locations.csv')
 
     # are made if they do not exist yet.
-    regridded_images_path = os.path.join(__location__, r'data2\regridded_images')
-    pre_labelled_data_directory = os.path.join(__location__, r'data2\pre_labelled_data')
-    after_set_check_directory = os.path.join(__location__, r'data2\after_set_check')
-    correctly_labelled_images_directory = os.path.join(__location__, r'data2\correct_labelled_data')
-    labelled_subcats_directory = os.path.join(__location__, r'data2\labelled_subcats')
-    results_directory = os.path.join(__location__, r'data4\results_id')
-    data_directory = os.path.join(__location__, r'data4')
-    conf_matrix_directory = os.path.join(__location__, r'data4\conf_matrix')
-    conf_matrix_noempty_dir = os.path.join(__location__, r'data4\conf_matrix_noempty')
-    conf_matrix_noemptytest_dir = os.path.join(__location__, r'data4\conf_matrix_noemptytest')
-    conf_matrix_noemptytrain_dir = os.path.join(__location__, r'data4\conf_matrix_noemptytrain')
+    regridded_images_path = os.path.join(__location__, r'data\regridded_images')
+    pre_labelled_data_directory = os.path.join(__location__, r'data\pre_labelled_data')
+    after_set_check_directory = os.path.join(__location__, r'data\after_set_check')
+    correctly_labelled_images_directory = os.path.join(__location__, r'data\correct_labelled_data')
+    labelled_subcats_directory = os.path.join(__location__, r'data\labelled_subcats')
+    results_directory = os.path.join(__location__, r'data3\results_id')
+    data_directory = os.path.join(__location__, r'data3')
+    conf_matrix_directory = os.path.join(__location__, r'data3\conf_matrix')
+    conf_matrix_noempty_dir = os.path.join(__location__, r'data3\conf_matrix_noempty')
+    conf_matrix_noemptytest_dir = os.path.join(__location__, r'data3\conf_matrix_noemptytest')
+    conf_matrix_noemptytrain_dir = os.path.join(__location__, r'data3\conf_matrix_noemptytrain')
 
     if not os.path.exists(regridded_images_path):
         os.makedirs(regridded_images_path)
@@ -1224,88 +1097,89 @@ if __name__ == "__main__":
     if not os.path.exists(conf_matrix_noemptytrain_dir):
         os.makedirs(conf_matrix_noemptytrain_dir)
 
-    # # [HARDCODE] process data, comment after first successful run. Data loaded in by add_classification_variable()
-    # process_data(images_directory_path, csv_path, regridded_images_path)
-    #
+
+    # [HARDCODE] process data, comment after first successful run. Data loaded in by add_classification_variable()
+    process_data(images_directory_path, csv_path, regridded_images_path)
+
     # load in processed data and assign labels for classification. This is the base for all further computations.
     # [HARDCODE] after first run, and after correctly labelling everything in dashboard, savefile has to be set to False
     # [HARDCODE] if data already correctly labelled, this can be commented/skipped, however, calendar doesn't print then
-    # pre_labelled_data = add_classification_variable(
-    #     regridded_images_path, csv_path, False,
-    #     pre_labelled_data_directory, "labelled_data", True)
-    #
-    # calendar = print_calender(pre_labelled_data)
-    #
-    # print("--------------------------------------------------------------------------")
-    # print("Filtering id's (Hardcoded)")
-    #
-    # pre_labelled_data_keys = list(pre_labelled_data.keys())
-    #
-    # # [HARDCODE] state for which id's no data is provided from the csv (only for print, has no functionality (yet))
-    # missing_data = ['p1', 'p2', 'p4', 'e3', 'e9']
-    #
-    # print("--------------------------------------------------------------------------")
-    # print(f"Missing data for {len(missing_data)} items: {missing_data}")
-    #
-    # # # [HARDCODE] get rid of useless locations according to own judgement/rules
-    # useless = ['a6', 'a4', 'a5', 'e5', 'e7', 'a8']
-    # for loc in useless:
-    #     pre_labelled_data_keys.remove(loc)
-    #     print(loc, 'deleted')
-    #
-    # print("--------------------------------------------------------------------------")
-    # print("Filtering for consecutive scenes only (Before correct labels)")
-    #
-    # # done to make it easier to filter the scenes... If they are not part of a set of consecutive scenes, why label them
-    # sets_and_drop_dict = find_consecutive_scenes(pre_labelled_data, pre_labelled_data_keys, 1, 2)
-    #
-    # pre_classed_data = drop_scenes_after_set_making(pre_labelled_data, sets_and_drop_dict, after_set_check_directory)
-    #
-    #
-    # print("--------------------------------------------------------------------------")
-    # print("Filtering done")
-    # print(f"Continuing with locations: {pre_labelled_data.keys()}")
-    #
-    # # [HARDCODE] You can change the directory from the pre labelled directory to correctly labelled directory if you
-    # # want to continue from where you left off. Do remember to save before you stop! Else you have to restart again! The
-    # # data is also saved when you close the viewed window
-    #
-    # dashboard_data_dict = load_dashboard_classed_data(after_set_check_directory, csv_path, useless)
-    #
-    # # [HARDCODE] runs the dashboard, comment lines to skip if already correctly labelled!
-    # # Or close the window when it shows
-    #
-    # dashboard = SatelliteDashboard(dashboard_data_dict, correctly_labelled_images_directory)
-    # dashboard.run()
-    #
-    # print("--------------------------------------------------------------------------\n")
-    # print("Make sure you have used the Dashboard to label every scene first! "
-    #       "Or another way to label with 'plume, artefact, empty...'")
-    #
-    # print("Continuing with labelled data if statement above is true (manual check needed)")
-    #
-    # correctly_classed_data = load_dashboard_classed_data(correctly_labelled_images_directory, csv_path, useless)
-    #
-    #
-    # print("Checking for valid scenesets based on requirements of")
-    # # check if sets are still valid to get label (if scenes have different label, discard)
-    # valid_sets = find_labelled_sets(correctly_classed_data, sets_and_drop_dict)
-    # #
-    # # if valid, calculate average correlation for methane -> supporting vars
-    # # 1 create dictionary with valid set as key and the data for those sets as value
-    # pre_correlationdict = create_sets_with_data_dict(correctly_classed_data, valid_sets)
-    #
-    # # 2 calculate correlation between methane and support variable(s). Hardcode define which supportvariables are used.
-    # # take average of correlations as a value for the cluster and methane X support var
-    # correlationdict = convert_to_correlation_dict(pre_correlationdict)
-    # #
-    # # # save correlations in json so code doesn't need a rerun.
-    # file_path = os.path.join(data_directory, 'correlationdict.json')
-    # with open(file_path, 'w') as file:
-    #     json.dump(correlationdict, file)
-    #
-    # print("Correlations saved!")
-    #
+    pre_labelled_data = add_classification_variable(
+        regridded_images_path, csv_path, False,
+        pre_labelled_data_directory, "labelled_data", True)
+
+    calendar = print_calender(pre_labelled_data)
+
+    print("--------------------------------------------------------------------------")
+    print("Filtering id's (Hardcoded)")
+
+    pre_labelled_data_keys = list(pre_labelled_data.keys())
+
+    # [HARDCODE] state for which id's no data is provided from the csv (only for print, has no functionality (yet))
+    missing_data = ['p1', 'p2', 'p4', 'e3', 'e9']
+
+    print("--------------------------------------------------------------------------")
+    print(f"Missing data for {len(missing_data)} items: {missing_data}")
+
+    # # [HARDCODE] get rid of useless locations according to own judgement/rules
+    useless = ['a6', 'a4', 'a5', 'e5', 'e7', 'a8']
+    for loc in useless:
+        pre_labelled_data_keys.remove(loc)
+        print(loc, 'deleted')
+
+    print("--------------------------------------------------------------------------")
+    print("Filtering for consecutive scenes only (Before correct labels)")
+
+    # done to make it easier to filter the scenes... If they are not part of a set of consecutive scenes, why label them
+    sets_and_drop_dict = find_consecutive_scenes(pre_labelled_data, pre_labelled_data_keys, 1, 3)
+
+    pre_classed_data = drop_scenes_after_set_making(pre_labelled_data, sets_and_drop_dict, after_set_check_directory)
+
+
+    print("--------------------------------------------------------------------------")
+    print("Filtering done")
+    print(f"Continuing with locations: {pre_labelled_data.keys()}")
+
+    # [HARDCODE] You can change the directory from the pre labelled directory to correctly labelled directory if you
+    # want to continue from where you left off. Do remember to save before you stop! Else you have to restart again! The
+    # data is also saved when you close the viewed window
+
+    dashboard_data_dict = load_dashboard_classed_data(correctly_labelled_images_directory, csv_path, useless)
+
+    # [HARDCODE] runs the dashboard, comment lines to skip if already correctly labelled!
+    # Or close the window when it shows.
+
+    dashboard = SatelliteDashboard(dashboard_data_dict, correctly_labelled_images_directory)
+    dashboard.run()
+
+    print("--------------------------------------------------------------------------\n")
+    print("Make sure you have used the Dashboard to label every scene first! "
+          "Or another way to label with 'plume, artefact, empty...'")
+
+    print("Continuing with labelled data if statement above is true (manual check needed)")
+
+    correctly_classed_data = load_dashboard_classed_data(correctly_labelled_images_directory, csv_path, useless)
+
+
+    print("Checking for valid scenesets based on requirements of")
+    # check if sets are still valid to get label (if scenes have different label, discard)
+    valid_sets = find_labelled_sets(correctly_classed_data, sets_and_drop_dict)
+
+    # if valid, calculate average correlation for methane -> supporting vars
+    # create dictionary with valid set as key and the data for those sets as value
+    pre_correlationdict = create_sets_with_data_dict(correctly_classed_data, valid_sets)
+
+    # calculate correlation between methane and support variable(s). Hardcode define which support variables are used.
+    # take average of correlations as a value for the cluster and methane X support var
+    correlationdict = convert_to_correlation_dict(pre_correlationdict)
+
+    # save correlations in json so code doesn't need a rerun.
+    file_path = os.path.join(data_directory, 'correlationdict.json')
+    with open(file_path, 'w') as file:
+        json.dump(correlationdict, file)
+
+    print("Correlations saved!")
+
     # open correlations from file if needed
     file_path = os.path.join(data_directory, 'correlationdict.json')
     with open(file_path, 'r') as file:
@@ -1313,10 +1187,9 @@ if __name__ == "__main__":
     print("Loaded correlations!")
     data = [dict for dict in correlationdict.values()]
 
-    print("Running Scikit-Learn classifiers:")
-
     dataframe = pd.DataFrame(data)
     print(len(dataframe))
+    print("Running Scikit-Learn classifiers:")
 
     print("label mapping:")
     print(f"0 - artefact")
@@ -1330,7 +1203,6 @@ if __name__ == "__main__":
     datavarscopys = [['eastward_wind', 'northward_wind', 'chi_square', 'cloud_fraction_VIIRS_SWIR_IFOV']
     ]
 
-    # test_clusterings(data, datavarscopys[0])
 
     for datavarscopy in datavarscopys:
         print("=======================================================================")
@@ -1346,8 +1218,6 @@ if __name__ == "__main__":
         # print("------------------------------------------------------------------------")
         print("No empty is train and test")
         test_make_models1(data, [datavarscopy], 3, csv_path)
-
-    # 6 refine results.
     "=========================================================================="
 
     # show time code took
